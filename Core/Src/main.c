@@ -19,8 +19,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "spi.h"
-#include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -45,7 +46,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern TIM_HandleTypeDef htim4;
+//extern TIM_HandleTypeDef htim4;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,10 +67,10 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint16_t i=0;
-		u8 key,mode;
-	u16 t=0;			 
-	u8 tmp_buf[33];	
+  uint16_t i = 0;
+  u8 key, mode;
+  u16 t = 0;
+  u8 tmp_buf[33];
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -90,32 +91,37 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM4_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-//	HAL_TIM_Base_Init(&htim4);
-//	HAL_TIM_PWM_Init(&htim4);
-	
-//	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-//	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+  //	HAL_TIM_Base_Init(&htim4);
+  //	HAL_TIM_PWM_Init(&htim4);
+
+  //	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+  //HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+  //	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
 
   NRF24L01_Init();
-	while(NRF24L01_Check())
-	{
-		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		HAL_Delay(300);
-	}
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
-	NRF24L01_RX_Mode();
-	while(1)
-		{	  		    		    				 
-			if(NRF24L01_RxPacket(tmp_buf)==0)//一旦接收到信息,则显示出来.
-			{
-				tmp_buf[32]=0;//加入字符串结束符
-			  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-			}			    
-		};	
+  while (NRF24L01_Check())
+  {
+    //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    HAL_Delay(3000);
+    printf("no nrf24l01 device  ");
+  }
+  //HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
+  NRF24L01_RX_Mode();
+  while (1)
+  {
+		HAL_Delay(3000);
+    if (NRF24L01_RxPacket(tmp_buf) == 0) //一旦接收到信息,则显示出来.
+    {
+      printf("receive data success  ");
+      tmp_buf[32] = 0; //加入字符串结束符
+      HAL_UART_Transmit(&huart1, tmp_buf, 32, 0xFFFF);
+      //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    }
+  };
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -125,11 +131,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//		i+=10;
-//		if(i>1000)
-//			i=0;
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 2000);
-		HAL_Delay(10);
+    //		i+=10;
+    //		if(i>1000)
+    //			i=0;
+    //__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 2000);
+    HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
@@ -159,8 +165,7 @@ void SystemClock_Config(void)
   }
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -188,7 +193,7 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

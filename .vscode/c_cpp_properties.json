@@ -11,7 +11,8 @@
                 "${workspaceFolder}/Drivers/CMSIS/Include",
                 "${workspaceFolder}/MDK-ARM",
                 "${workspaceFolder}/Core/Src",
-                "${workspaceFolder}/Drivers/STM32F1xx_HAL_Driver/Src"
+                "${workspaceFolder}/Drivers/STM32F1xx_HAL_Driver/Src",
+                "${workspaceFolder}/Handware/NRF24L01"
             ],
             "defines": [
                 "_DEBUG",
